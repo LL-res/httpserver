@@ -2,7 +2,7 @@
 FROM golang:alpine AS build
 WORKDIR /app
 COPY . .
-RUN go mod tidy
+RUN go env -w GOPROXY=goproxy.cn,direct && go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app
 
 # Stage 2: Final image
