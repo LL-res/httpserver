@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: my-app-monitor
+  namespace: default
+  labels:
+    release: prometheus-operator
+spec:
+  endpoints:
+    - path: /metrics
+      port: http
+      interval: 10s
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      micrometer-prometheus-discovery: 'true'
+      app: my-app

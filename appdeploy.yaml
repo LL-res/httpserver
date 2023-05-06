@@ -6,7 +6,7 @@ spec:
   selector:
     matchLabels:
       app: my-app
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       labels:
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: my-app
-          image: docker.io/library/httpserver:v0.1
+          image: docker.io/library/httpserver:v0.3
           imagePullPolicy: "Never"
           ports:
             - containerPort: 8080

@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"strconv"
 	"sync"
 	"time"
 
@@ -19,7 +18,7 @@ var (
 	qpsCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "http_requests_total",
 		Help: "Number of HTTP requests processed.",
-	}, []string{"method", "status_code"})
+	}, []string{"method", "status"})
 )
 
 func init() {
@@ -66,18 +65,18 @@ func main() {
 	r.Use(func(c *gin.Context) {
 		if !limiter.Allow() {
 			qpsCounter.With(prometheus.Labels{
-				"method":      "GET",
-				"status_code": strconv.Itoa(http.StatusInternalServerError),
+				"method": "GET",
+				"status": "slow",
 			}).Inc()
-			c.JSON(http.StatusInternalServerError, "can not handle")
+			c.JSON(http.StatusOK, "slow")
 			c.Abort()
 		}
 		c.Next()
 	})
 	r.GET("/random", func(c *gin.Context) {
 		qpsCounter.With(prometheus.Labels{
-			"method":      "GET",
-			"status_code": fmt.Sprintf("%d", c.Writer.Status()),
+			"method": "GET",
+			"status": "healthy",
 		}).Inc()
 
 		c.JSON(http.StatusOK, gin.H{
