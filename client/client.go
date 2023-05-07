@@ -8,15 +8,19 @@ import (
 	"time"
 )
 
-var client *resty.Client
+var (
+	client       *resty.Client
+	tickInterval time.Duration = 15 * time.Second
+	sleepTime    time.Duration = 5 * time.Minute
+)
 
 func send() {
 	client = resty.New()
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(tickInterval)
 	i := 0
 	done := make(chan struct{})
 	go func() {
-		time.Sleep(5 * time.Minute)
+		time.Sleep(sleepTime)
 		ticker.Stop()
 		close(done)
 	}()
@@ -26,7 +30,7 @@ func send() {
 			log.Println("over")
 			return
 		case <-ticker.C:
-			lauch(Sin(300, i, 30))
+			lauch(Sin(int(sleepTime.Seconds()/tickInterval.Seconds()), i, 30))
 			i++
 
 		}
@@ -38,7 +42,7 @@ func lauch(i int) {
 		go func() {
 			rsp, err := client.R().
 				EnableTrace().
-				Get("http://127.0.0.1:50103/random")
+				Get("http://127.0.0.1:43787/random")
 			if err != nil {
 				log.Println(err)
 			}

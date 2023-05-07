@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"math/rand"
 	"net/http"
 	"os"
@@ -11,14 +12,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
 	qpsCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "http_requests_total",
 		Help: "Number of HTTP requests processed.",
-	}, []string{"method", "status"})
+	}, []string{"method", "status_code"})
 )
 
 func init() {
@@ -62,29 +62,29 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	limiter := NewLimiter(*rate, *icap)
 	r := gin.Default()
-	r.Use(func(c *gin.Context) {
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	randRouter := r.Group("/random")
+	randRouter.Use(func(c *gin.Context) {
 		if !limiter.Allow() {
 			qpsCounter.With(prometheus.Labels{
-				"method": "GET",
-				"status": "slow",
+				"method":      "GET",
+				"status_code": "500",
 			}).Inc()
-			c.JSON(http.StatusOK, "slow")
+			c.JSON(http.StatusInternalServerError, "can not handle")
 			c.Abort()
 		}
 		c.Next()
 	})
-	r.GET("/random", func(c *gin.Context) {
+	randRouter.GET("", func(c *gin.Context) {
 		qpsCounter.With(prometheus.Labels{
-			"method": "GET",
-			"status": "healthy",
+			"method":      "GET",
+			"status_code": "200",
 		}).Inc()
 
 		c.JSON(http.StatusOK, gin.H{
 			"random": rand.Intn(100),
 		})
 	})
-
-	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	port := os.Getenv("PORT")
 	if port == "" {
