@@ -1,13 +1,13 @@
 package main
 
-import (
+/*import (
 	"flag"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"httpserver/limiter"
 	"math/rand"
 	"net/http"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -25,47 +25,18 @@ func init() {
 	prometheus.MustRegister(qpsCounter)
 }
 
-type Limiter struct {
-	sync.Mutex
-	rate        int
-	cap         int
-	cur         int
-	lastRequest time.Time
-}
-
-func NewLimiter(rate int, cap int) *Limiter {
-	return &Limiter{
-		rate: rate,
-		cap:  cap,
-	}
-}
-func (l *Limiter) Allow() bool {
-	l.Lock()
-	defer l.Unlock()
-	now := time.Now()
-	l.cur += int(now.Sub(l.lastRequest).Seconds()) * l.rate
-	l.lastRequest = now
-	if l.cur > l.cap {
-		l.cur = l.cap
-	}
-	if l.cur > 0 {
-		l.cur--
-		return true
-	}
-	return false
-}
-
 func main() {
 	icap := flag.Int("cap", 10, "每秒最大的请求数")
 	rate := flag.Int("rate", 5, "每秒可增长的请求数")
+	kind := flag.String("kind", "max", "kind")
 	flag.Parse()
 	rand.Seed(time.Now().UnixNano())
-	limiter := NewLimiter(*rate, *icap)
+	lmtr := limiter.New(*icap, *rate, *kind)
 	r := gin.Default()
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	randRouter := r.Group("/random")
 	randRouter.Use(func(c *gin.Context) {
-		if !limiter.Allow() {
+		if !lmtr.Allow() {
 			qpsCounter.With(prometheus.Labels{
 				"method":      "GET",
 				"status_code": "500",
@@ -95,3 +66,4 @@ func main() {
 		panic(err)
 	}
 }
+*/

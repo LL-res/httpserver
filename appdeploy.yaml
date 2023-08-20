@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: my-app
-          image: docker.io/library/httpserver:v0.3
+          image: docker.io/library/diagnosis:v0.2
           imagePullPolicy: "Never"
           ports:
             - containerPort: 8080
@@ -42,12 +42,12 @@ metadata:
   name: my-app-monitor
   namespace: default
   labels:
-    release: prometheus-operator
+    release:  kube-prometheus-stack
 spec:
   endpoints:
     - path: /metrics
       port: http
-      interval: 10s
+      interval: 3s
   namespaceSelector:
     any: true
   selector:
